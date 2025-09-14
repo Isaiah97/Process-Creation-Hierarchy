@@ -49,7 +49,7 @@ int main(){
 			Destruction();
 			break;
 		case 4:
-			print("Program terminated\n")
+			printf("Program terminated\n");
 		}
 	}while (choice != 4);
 
