@@ -51,6 +51,7 @@ int main(){
 		case 4:
 			printf("Program terminated\n");
 		}
+	
 	}while (choice != 4);
 
 	return 0;
