@@ -24,14 +24,6 @@ void Exit(){
 
 
 
-
-
-
-
-
-
-
-
 int main(){
 	int choice;
 
@@ -45,10 +37,21 @@ int main(){
 	printf("Enter selection: ");
         scanf("%d", &choice);
 
-	switch (choice){
-
-	}
-
-}
+	switch (choice) {
 	
+		case 1:
+			Initialization();
+			break;
+		case 2:
+			Creation();
+			break;
+		case 3:
+			Destruction();
+			break
+		case 4:
+			print("Program terminated\n")
+		}
+	}while choice != 4;
+
+	return 0;
 }
