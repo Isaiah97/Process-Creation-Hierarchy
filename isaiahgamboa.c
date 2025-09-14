@@ -1,9 +1,12 @@
 #include <stdio.h>
-
+//need an array
+#define MAX_PROCESSES[0]
 
 void Initialization(){
 
 
+printf("\nProcess List: \n");
+printf("Process id: ", )
 
 }
 
@@ -23,7 +26,12 @@ void Exit(){
 }
 
 
-
+// code the main table with 4 options
+// Initailize
+// Creation
+// Destroy
+// Quit
+// I also need a selector for each category
 int main(){
 	int choice;
 
@@ -37,7 +45,8 @@ int main(){
 	printf("Enter selection: ");
         scanf("%d", &choice);
 
-	switch (choice) {
+	// having cases would be best bet
+	switch (choice) {  
 	
 		case 1:
 			Initialization();
