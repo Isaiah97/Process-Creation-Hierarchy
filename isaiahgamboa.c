@@ -1,12 +1,12 @@
 #include <stdio.h>
 //need an array
-#define MAX_PROCESSES[0]
+#define MAX_PROCESSES[];
 
 void Initialization(){
 
 
 printf("\nProcess List: \n");
-printf("Process id: ", )
+printf("Process id: ");
 
 }
 
