@@ -44,11 +44,11 @@ int main(){
 	printf(" 4) Quit program and free memory\n");
 	printf("Enter selection: ");
         scanf("%d", &choice);
-        
+
 	switch (choice){
 
 	}
 
-
+}
 	
 }
