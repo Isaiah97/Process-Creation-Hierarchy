@@ -47,11 +47,11 @@ int main(){
 			break;
 		case 3:
 			Destruction();
-			break
+			break;
 		case 4:
 			print("Program terminated\n")
 		}
-	}while choice != 4;
+	}while (choice != 4);
 
 	return 0;
 }
