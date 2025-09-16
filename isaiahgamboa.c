@@ -1,6 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 //need an array
-#define MAX_PROCESSES[];
+#define MAX_PROCESSES 256
+
+typedef struct ChildNode {
+	int child;
+	struct ChildNode *next;
+}
+ChildNode;
+
+typedef struct PCB {
+	int parent;
+	ChildNode *child;
+}
+PCB;
 
 void Initialization(){
 
@@ -59,6 +73,7 @@ int main(){
 			break;
 		case 4:
 			printf("Program terminated\n");
+			break;
 		}
 	
 	}while (choice != 4);
