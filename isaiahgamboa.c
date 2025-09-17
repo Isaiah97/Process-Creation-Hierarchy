@@ -29,7 +29,7 @@ static int index(void) {
 
 static void free_child(ChildNode *head) {
 	while (head) { 
-		ChildNode *tmp = h->next;
+		ChildNode *tmp = head->next;
 		free(head);
 		head = tmp;
 	}
@@ -45,10 +45,10 @@ static void append_child_link(int p, int q) {
     node->child = q;
     node->next = NULL;
 
-    if (ptable[p]->children == NULL) {
-        ptable[p]->children = node;
+    if (pcbtable[p]->child == NULL) {
+        pcbtable[p]->child = node;
     } else {
-        ChildNode *cur = ptable[p]->children;
+        ChildNode *cur = pcbtable[p]->child;
         while (cur->next) cur = cur->next;
         cur->next = node;
     }
@@ -57,7 +57,7 @@ static void append_child_link(int p, int q) {
 /* Find the lowest unused PCB index (slot is NULL). Return -1 if none. */
 static int find_free_index(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (ptable[i] == NULL) return i;
+        if (pcbtable[i] == NULL) return i;
     }
     return -1;
 }
@@ -66,17 +66,17 @@ static int find_free_index(void) {
 static void print_process_list(void) {
     printf("Process list:\n");
     for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (ptable[i] != NULL) {
+        if (pcbtable[i] != NULL) {
             printf("Process id: %d\n", i);
-            if (ptable[i]->parent == -1) {
+            if (pcbtable[i]->parent == -1) {
                 printf("No parent process\n");
             } else {
-                printf("Parent process: %d\n", ptable[i]->parent);
+                printf("Parent process: %d\n", pcbtable[i]->parent);
             }
-            if (ptable[i]->children == NULL) {
+            if (pcbtable[i]->children == NULL) {
                 printf("No child processes\n");
             } else {
-                ChildNode *cur = ptable[i]->children;
+                ChildNode *cur = pcbtable[i]->children;
                 while (cur) {
                     printf("Child process: %d\n", cur->child);
                     cur = cur->next;
