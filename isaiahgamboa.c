@@ -73,10 +73,10 @@ static void print_process_list(void) {
             } else {
                 printf("Parent process: %d\n", pcbtable[i]->parent);
             }
-            if (pcbtable[i]->children == NULL) {
+            if (pcbtable[i]->child == NULL) {
                 printf("No child processes\n");
             } else {
-                ChildNode *cur = pcbtable[i]->children;
+                ChildNode *cur = pcbtable[i]->child;
                 while (cur) {
                     printf("Child process: %d\n", cur->child);
                     cur = cur->next;
@@ -88,20 +88,20 @@ static void print_process_list(void) {
 
 /* Recursively destroy ALL descendants of p (child, grandchild, ...), but NOT p itself. */
 static void destroy_descendants(int p) {
-    if (ptable[p] == NULL) return;
+    if (pcbtable[p] == NULL) return;
 
     /* Walk the children list; for each q: recursively destroy q's descendants, then free PCB[q] and its list node. */
-    ChildNode *cur = ptable[p]->children;
+    ChildNode *cur = pcbtable[p]->child;
     while (cur) {
         int q = cur->child;
 
         /* Recurse into q first (if q exists) */
-        if (q >= 0 && q < MAX_PROCESSES && ptable[q] != NULL) {
+        if (q >= 0 && q < MAX_PROCESSES && pcbtable[q] != NULL) {
             destroy_descendants(q);              /* destroy q's descendants */
             /* Now free PCB[q] itself */
-            free_children_list(ptable[q]->children);
-            free(ptable[q]);
-            ptable[q] = NULL;
+            free_children_list(pcbtable[q]->child);
+            free(pcbtable[q]);
+            pcbtable[q] = NULL;
         }
 
         /* Advance while freeing the link node from p's list */
@@ -111,16 +111,16 @@ static void destroy_descendants(int p) {
     }
 
     /* After destroying all children, set p's children to NULL (no children left). */
-    ptable[p]->children = NULL;
+    pcbtable[p]->child = NULL;
 }
 
 /* Clean up everything (used for Quit and re-initialization safety) */
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (ptable[i] != NULL) {
-            free_children_list(ptable[i]->children);
-            free(ptable[i]);
-            ptable[i] = NULL;
+        if (pcbtable[i] != NULL) {
+            free_children_list(pcbtable[i]->child);
+            free(pcbtable[i]);
+            pcbtable[i] = NULL;
         }
     }
 }
@@ -137,7 +137,7 @@ static void initialize_process_hierarchy(void) {
     }
     root->parent = -1;   /* no parent */
     root->children = NULL;
-    ptable[0] = root;
+    pcbtable[0] = root;
 
     print_process_list();
 }
@@ -147,7 +147,7 @@ static void create_child(void) {
     printf("Enter the parent process id: ");
     if (scanf("%d", &parent) != 1) return;
 
-    if (parent < 0 || parent >= MAX_PROCESSES || ptable[parent] == NULL) {
+    if (parent < 0 || parent >= MAX_PROCESSES || pcbtable[parent] == NULL) {
         /* Parent does not exist; silently ignore or print nothing per sample. */
         /* You can add an error line here if your grader allows extra output. */
         return;
@@ -168,7 +168,7 @@ static void create_child(void) {
     }
     child->parent = parent;
     child->children = NULL;
-    ptable[q] = child;
+    pcbtable[q] = child;
 
     /* Append child's index to parent's children list */
     append_child_link(parent, q);
