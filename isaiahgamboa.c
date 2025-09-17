@@ -6,36 +6,46 @@
 typedef struct ChildNode {
     int child;
     struct ChildNode *next;
-} ChildNode;
+} 
+ChildNode;
 
 typedef struct PCB {
     int parent;          /* -1 if no parent */
     ChildNode *children; /* linked list of child indices */
-} PCB;
+} 
+PCB;
 
 /* Global: array of PCB pointers (NULL = free slot) */
 static PCB *ptable[MAX_PROCESSES] = {0};
 
 /* -------- utilities kept minimal -------- */
 static int find_free_index(void) {
-    for (int i = 0; i < MAX_PROCESSES; ++i) if (!ptable[i]) return i;
+    for (int i = 0; i < MAX_PROCESSES; ++i) 
+    	if (!ptable[i]) 
+    		return i;
     return -1;
 }
 
 static void free_child_list(ChildNode *h) {
-    while (h) { ChildNode *t = h->next; free(h); h = t; }
+    while (h) { 
+    	ChildNode *t = h->next; free(h); h = t; 
+    }
 }
 
 static void print_process_list(void) {
-    printf("Process list:\n");
-    for (int i = 0; i < MAX_PROCESSES; ++i) if (ptable[i]) {
-        printf("Process id: %d\n", i);
-        if (ptable[i]->parent == -1) printf("No parent process\n");
-        else                          printf("Parent process: %d\n", ptable[i]->parent);
-        if (!ptable[i]->children)     printf("No child processes\n");
+    printf("\nProcess list:\n");
+    for (int i = 0; i < MAX_PROCESSES; ++i) 
+    	if (ptable[i]) {
+        	printf("Process id: %d\n", i);
+        if (ptable[i]->parent == -1) 
+        	printf("	No parent process\n");
+        else                          
+       		printf("	Parent process: %d\n", ptable[i]->parent);
+        if (!ptable[i]->children)     
+        	printf("	No child processes\n");
         else {
             for (ChildNode *c = ptable[i]->children; c; c = c->next)
-                printf("Child process: %d\n", c->child);
+                printf("	Child process: %d\n", c->child);
         }
     }
 }
@@ -60,7 +70,8 @@ static void destroy_descendants(int p) {
 }
 
 static void free_all(void) {
-    for (int i = 0; i < MAX_PROCESSES; ++i) if (ptable[i]) {
+    for (int i = 0; i < MAX_PROCESSES; ++i) 
+    	if (ptable[i]) {
         free_child_list(ptable[i]->children);
         free(ptable[i]);
         ptable[i] = NULL;
@@ -71,7 +82,8 @@ static void free_all(void) {
 static void initialize_process_hierarchy(void) {
     free_all();
     ptable[0] = (PCB *)malloc(sizeof(PCB));
-    if (!ptable[0]) exit(1);
+    if (!ptable[0]) 
+    	exit(1);
     ptable[0]->parent = -1;
     ptable[0]->children = NULL;
     print_process_list();
@@ -80,22 +92,29 @@ static void initialize_process_hierarchy(void) {
 static void create_child(void) {
     int p;
     printf("Enter the parent process id: ");
-    if (scanf("%d", &p) != 1) return;
-    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) return;
+    if (scanf("%d", &p) != 1) 
+    	return;
+    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
+    	return;
 
     int q = find_free_index();
-    if (q == -1) return;
+    if (q == -1) 
+    	return;
 
     ptable[q] = (PCB *)malloc(sizeof(PCB));
-    if (!ptable[q]) exit(1);
+    if (!ptable[q]) 
+    	exit(1);
     ptable[q]->parent = p;
     ptable[q]->children = NULL;
 
     ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
-    if (!node) exit(1);
-    node->child = q; node->next = NULL;
+    if (!node) 
+    	exit(1);
+    node->child = q; 
+    node->next = NULL;
 
-    if (!ptable[p]->children) ptable[p]->children = node;
+    if (!ptable[p]->children) 
+    	ptable[p]->children = node;
     else {
         ChildNode *t = ptable[p]->children;
         while (t->next) t = t->next;
@@ -107,9 +126,11 @@ static void create_child(void) {
 
 static void destroy_descendants_prompt(void) {
     int p;
-    printf("Enter the parent process whose descendants are to be destroyed: ");
-    if (scanf("%d", &p) != 1) return;
-    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) return;
+    printf("\nEnter the parent process whose descendants are to be destroyed: ");
+    if (scanf("%d", &p) != 1) 
+    	return;
+    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
+    	return;
 
     destroy_descendants(p);
     print_process_list();
@@ -119,7 +140,6 @@ static void quit_program(void) {
     free_all();
 }
 
-/* -------- main loop (no extra blank lines) -------- */
 int main(void) {
     int choice;
     do {
