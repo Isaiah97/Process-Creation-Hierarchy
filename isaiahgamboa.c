@@ -16,6 +16,16 @@ typedef struct PCB {
 }
 PCB;
 
+static PCB *pcbtable[MAX_PROCESSES] = {0};
+
+static int free_index(void) {
+	int i;
+
+	for (i = 0; i < MAX_PROCESSES; ++i)
+		if (!pcbtable[i])
+			return i;
+}
+
 void Initialization(){
 
 
