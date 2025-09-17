@@ -137,15 +137,16 @@ int main(void) {
         }
 
         switch (choice) {
-            case 1: initialize_process_hierarchy(); break;
-            case 2: create_child();                 break;
-            case 3: destroy_descendants_prompt();   break;
+            case 1: initialize_process_hierarchy(); 
+            	break;
+            case 2: create_child();                 
+            	break;
+            case 3: destroy_descendants_prompt();   
+            	break;
             case 4:
                 printf("Quitting program... ");
                 quit_program();
-                printf("here is the rules\n");
                 break;
-            default: break; /* ignore invalids per rubric */
         }
     } while (choice != 4);
 
