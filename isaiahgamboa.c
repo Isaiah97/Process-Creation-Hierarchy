@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 //need an array
-#define MAX_PROCESSES 256
+#define MAX_PROCESSES 64
 
 typedef struct ChildNode {
 	int child;
