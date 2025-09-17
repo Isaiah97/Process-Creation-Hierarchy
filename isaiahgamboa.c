@@ -24,6 +24,7 @@ static int free_index(void) {
 	for (i = 0; i < MAX_PROCESSES; ++i)
 		if (!pcbtable[i])
 			return i;
+		return -1;
 }
 
 void Initialization(){
