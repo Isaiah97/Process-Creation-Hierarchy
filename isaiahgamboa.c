@@ -99,7 +99,7 @@ static void destroy_descendants(int p) {
         if (q >= 0 && q < MAX_PROCESSES && pcbtable[q] != NULL) {
             destroy_descendants(q);              /* destroy q's descendants */
             /* Now free PCB[q] itself */
-            free_children_list(pcbtable[q]->child);
+            free_child(pcbtable[q]->child);
             free(pcbtable[q]);
             pcbtable[q] = NULL;
         }
@@ -118,7 +118,7 @@ static void destroy_descendants(int p) {
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) {
         if (pcbtable[i] != NULL) {
-            free_children_list(pcbtable[i]->child);
+            free_child(pcbtable[i]->child);
             free(pcbtable[i]);
             pcbtable[i] = NULL;
         }
@@ -136,7 +136,7 @@ static void initialize_process_hierarchy(void) {
         exit(1);
     }
     root->parent = -1;   /* no parent */
-    root->children = NULL;
+    root->child = NULL;
     pcbtable[0] = root;
 
     print_process_list();
@@ -167,7 +167,7 @@ static void create_child(void) {
         exit(1);
     }
     child->parent = parent;
-    child->children = NULL;
+    child->child = NULL;
     pcbtable[q] = child;
 
     /* Append child's index to parent's children list */
@@ -181,7 +181,7 @@ static void destroy_descendants_prompt(void) {
     printf("Enter the parent process whose descendants are to be destroyed: ");
     if (scanf("%d", &parent) != 1) return;
 
-    if (parent < 0 || parent >= MAX_PROCESSES || ptable[parent] == NULL) {
+    if (parent < 0 || parent >= MAX_PROCESSES || pcbtable[parent] == NULL) {
         /* Parent doesn't exist; follow sample style: no extra error prints required */
         return;
     }
