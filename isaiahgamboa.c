@@ -9,14 +9,14 @@ typedef struct ChildNode {
 } ChildNode;
 
 typedef struct PCB {
-    int parent;          /* -1 for no parent */
+    int parent;          /* -1 if no parent */
     ChildNode *children; /* linked list of child indices */
 } PCB;
 
-/* Global table of PCB pointers; NULL = free slot */
+/* Global: array of PCB pointers (NULL = free slot) */
 static PCB *ptable[MAX_PROCESSES] = {0};
 
-/* --------- Small utilities --------- */
+/* -------- utilities kept minimal -------- */
 static int find_free_index(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) if (!ptable[i]) return i;
     return -1;
@@ -40,26 +40,25 @@ static void print_process_list(void) {
     }
 }
 
-/* Recursively destroy descendants of p (NOT p itself), and remove links from p */
+/* destroy all descendants of p (NOT p). Also removes links from p */
 static void destroy_descendants(int p) {
     if (!ptable[p]) return;
     ChildNode *c = ptable[p]->children;
     while (c) {
         int q = c->child;
         if (q >= 0 && q < MAX_PROCESSES && ptable[q]) {
-            destroy_descendants(q);               /* destroy q's subtree first */
-            free_child_list(ptable[q]->children); /* free q's child list */
-            free(ptable[q]);                      /* free PCB[q] */
+            destroy_descendants(q);
+            free_child_list(ptable[q]->children);
+            free(ptable[q]);
             ptable[q] = NULL;
         }
-        ChildNode *tmp = c;                       /* free the link node in p */
+        ChildNode *tmp = c;
         c = c->next;
         free(tmp);
     }
     ptable[p]->children = NULL;
 }
 
-/* Free everything (used by Initialize and Quit) */
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) if (ptable[i]) {
         free_child_list(ptable[i]->children);
@@ -68,10 +67,11 @@ static void free_all(void) {
     }
 }
 
-/* --------- Menu actions (simple) --------- */
+/* -------- menu actions with EXACT rubric text -------- */
 static void initialize_process_hierarchy(void) {
     free_all();
     ptable[0] = (PCB *)malloc(sizeof(PCB));
+    if (!ptable[0]) exit(1);
     ptable[0]->parent = -1;
     ptable[0]->children = NULL;
     print_process_list();
@@ -87,12 +87,14 @@ static void create_child(void) {
     if (q == -1) return;
 
     ptable[q] = (PCB *)malloc(sizeof(PCB));
+    if (!ptable[q]) exit(1);
     ptable[q]->parent = p;
     ptable[q]->children = NULL;
 
-    /* append q to p's children (at tail to match sample ordering) */
     ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
+    if (!node) exit(1);
     node->child = q; node->next = NULL;
+
     if (!ptable[p]->children) ptable[p]->children = node;
     else {
         ChildNode *t = ptable[p]->children;
@@ -117,7 +119,7 @@ static void quit_program(void) {
     free_all();
 }
 
-/* --------- Main --------- */
+/* -------- main loop (no extra blank lines) -------- */
 int main(void) {
     int choice;
     do {
@@ -130,7 +132,6 @@ int main(void) {
         printf("Enter selection: ");
 
         if (scanf("%d", &choice) != 1) {
-            /* flush bad input */
             int ch; while ((ch = getchar()) != '\n' && ch != EOF) {}
             continue;
         }
@@ -144,7 +145,7 @@ int main(void) {
                 quit_program();
                 printf("here is the rules\n");
                 break;
-            default: /* ignore invalid per rubric */ break;
+            default: break; /* ignore invalids per rubric */
         }
     } while (choice != 4);
 
