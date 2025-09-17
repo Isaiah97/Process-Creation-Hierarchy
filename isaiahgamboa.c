@@ -1,204 +1,125 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//need an array
 #define MAX_PROCESSES 64
 
 typedef struct ChildNode {
-	int child;
-	struct ChildNode *next;
-}
-ChildNode;
+    int child;
+    struct ChildNode *next;
+} ChildNode;
 
 typedef struct PCB {
-	int parent;
-	ChildNode *child;
-}
-PCB;
+    int parent;          /* -1 for no parent */
+    ChildNode *children; /* linked list of child indices */
+} PCB;
 
-static PCB *pcbtable[MAX_PROCESSES] = {0};
+/* Global table of PCB pointers; NULL = free slot */
+static PCB *ptable[MAX_PROCESSES] = {0};
 
-static int index(void) {
-	int i;
-
-	for (i = 0; i < MAX_PROCESSES; ++i)
-		if (!pcbtable[i])
-			return i;
-		return -1;
-}
-
-static void free_child(ChildNode *head) {
-	while (head) { 
-		ChildNode *tmp = head->next;
-		free(head);
-		head = tmp;
-	}
-}
-
-/* Append child index q to parent p's children list (at tail to preserve order) */
-static void append_child_link(int p, int q) {
-    ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
-    if (!node) {
-        fprintf(stderr, "Memory allocation failed while adding child link.\n");
-        exit(1);
-    }
-    node->child = q;
-    node->next = NULL;
-
-    if (pcbtable[p]->child == NULL) {
-        pcbtable[p]->child = node;
-    } else {
-        ChildNode *cur = pcbtable[p]->child;
-        while (cur->next) cur = cur->next;
-        cur->next = node;
-    }
-}
-
-/* Find the lowest unused PCB index (slot is NULL). Return -1 if none. */
+/* --------- Small utilities --------- */
 static int find_free_index(void) {
-    for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (pcbtable[i] == NULL) return i;
-    }
+    for (int i = 0; i < MAX_PROCESSES; ++i) if (!ptable[i]) return i;
     return -1;
 }
 
-/* Print the process list in the style shown in the sample output */
+static void free_child_list(ChildNode *h) {
+    while (h) { ChildNode *t = h->next; free(h); h = t; }
+}
+
 static void print_process_list(void) {
     printf("Process list:\n");
-    for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (pcbtable[i] != NULL) {
-            printf("Process id: %d\n", i);
-            if (pcbtable[i]->parent == -1) {
-                printf("No parent process\n");
-            } else {
-                printf("Parent process: %d\n", pcbtable[i]->parent);
-            }
-            if (pcbtable[i]->child == NULL) {
-                printf("No child processes\n");
-            } else {
-                ChildNode *cur = pcbtable[i]->child;
-                while (cur) {
-                    printf("Child process: %d\n", cur->child);
-                    cur = cur->next;
-                }
-            }
+    for (int i = 0; i < MAX_PROCESSES; ++i) if (ptable[i]) {
+        printf("Process id: %d\n", i);
+        if (ptable[i]->parent == -1) printf("No parent process\n");
+        else                          printf("Parent process: %d\n", ptable[i]->parent);
+        if (!ptable[i]->children)     printf("No child processes\n");
+        else {
+            for (ChildNode *c = ptable[i]->children; c; c = c->next)
+                printf("Child process: %d\n", c->child);
         }
     }
 }
 
-/* Recursively destroy ALL descendants of p (child, grandchild, ...), but NOT p itself. */
+/* Recursively destroy descendants of p (NOT p itself), and remove links from p */
 static void destroy_descendants(int p) {
-    if (pcbtable[p] == NULL) return;
-
-    /* Walk the children list; for each q: recursively destroy q's descendants, then free PCB[q] and its list node. */
-    ChildNode *cur = pcbtable[p]->child;
-    while (cur) {
-        int q = cur->child;
-
-        /* Recurse into q first (if q exists) */
-        if (q >= 0 && q < MAX_PROCESSES && pcbtable[q] != NULL) {
-            destroy_descendants(q);              /* destroy q's descendants */
-            /* Now free PCB[q] itself */
-            free_child(pcbtable[q]->child);
-            free(pcbtable[q]);
-            pcbtable[q] = NULL;
+    if (!ptable[p]) return;
+    ChildNode *c = ptable[p]->children;
+    while (c) {
+        int q = c->child;
+        if (q >= 0 && q < MAX_PROCESSES && ptable[q]) {
+            destroy_descendants(q);               /* destroy q's subtree first */
+            free_child_list(ptable[q]->children); /* free q's child list */
+            free(ptable[q]);                      /* free PCB[q] */
+            ptable[q] = NULL;
         }
-
-        /* Advance while freeing the link node from p's list */
-        ChildNode *to_free = cur;
-        cur = cur->next;
-        free(to_free);
+        ChildNode *tmp = c;                       /* free the link node in p */
+        c = c->next;
+        free(tmp);
     }
-
-    /* After destroying all children, set p's children to NULL (no children left). */
-    pcbtable[p]->child = NULL;
+    ptable[p]->children = NULL;
 }
 
-/* Clean up everything (used for Quit and re-initialization safety) */
+/* Free everything (used by Initialize and Quit) */
 static void free_all(void) {
-    for (int i = 0; i < MAX_PROCESSES; ++i) {
-        if (pcbtable[i] != NULL) {
-            free_child(pcbtable[i]->child);
-            free(pcbtable[i]);
-            pcbtable[i] = NULL;
-        }
+    for (int i = 0; i < MAX_PROCESSES; ++i) if (ptable[i]) {
+        free_child_list(ptable[i]->children);
+        free(ptable[i]);
+        ptable[i] = NULL;
     }
 }
 
-/* ------------ Menu actions ------------ */
+/* --------- Menu actions (simple) --------- */
 static void initialize_process_hierarchy(void) {
-    /* Reset everything and create process 0 with no parent and no children */
     free_all();
-
-    PCB *root = (PCB *)malloc(sizeof(PCB));
-    if (!root) {
-        fprintf(stderr, "Memory allocation failed during initialization.\n");
-        exit(1);
-    }
-    root->parent = -1;   /* no parent */
-    root->child = NULL;
-    pcbtable[0] = root;
-
+    ptable[0] = (PCB *)malloc(sizeof(PCB));
+    ptable[0]->parent = -1;
+    ptable[0]->children = NULL;
     print_process_list();
 }
 
 static void create_child(void) {
-    int parent;
+    int p;
     printf("Enter the parent process id: ");
-    if (scanf("%d", &parent) != 1) return;
+    if (scanf("%d", &p) != 1) return;
+    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) return;
 
-    if (parent < 0 || parent >= MAX_PROCESSES || pcbtable[parent] == NULL) {
-        /* Parent does not exist; silently ignore or print nothing per sample. */
-        /* You can add an error line here if your grader allows extra output. */
-        return;
-    }
-
-    /* Find an unused PCB index q */
     int q = find_free_index();
-    if (q == -1) {
-        /* Table full; nothing in sample, so just return */
-        return;
-    }
+    if (q == -1) return;
 
-    /* Allocate PCB[q] */
-    PCB *child = (PCB *)malloc(sizeof(PCB));
-    if (!child) {
-        fprintf(stderr, "Memory allocation failed while creating child.\n");
-        exit(1);
-    }
-    child->parent = parent;
-    child->child = NULL;
-    pcbtable[q] = child;
+    ptable[q] = (PCB *)malloc(sizeof(PCB));
+    ptable[q]->parent = p;
+    ptable[q]->children = NULL;
 
-    /* Append child's index to parent's children list */
-    append_child_link(parent, q);
+    /* append q to p's children (at tail to match sample ordering) */
+    ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
+    node->child = q; node->next = NULL;
+    if (!ptable[p]->children) ptable[p]->children = node;
+    else {
+        ChildNode *t = ptable[p]->children;
+        while (t->next) t = t->next;
+        t->next = node;
+    }
 
     print_process_list();
 }
 
 static void destroy_descendants_prompt(void) {
-    int parent;
+    int p;
     printf("Enter the parent process whose descendants are to be destroyed: ");
-    if (scanf("%d", &parent) != 1) return;
+    if (scanf("%d", &p) != 1) return;
+    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) return;
 
-    if (parent < 0 || parent >= MAX_PROCESSES || pcbtable[parent] == NULL) {
-        /* Parent doesn't exist; follow sample style: no extra error prints required */
-        return;
-    }
-
-    destroy_descendants(parent);
+    destroy_descendants(p);
     print_process_list();
 }
 
 static void quit_program(void) {
-    /* Free memory and exit after loop prints message */
     free_all();
 }
 
-/* ------------ Main ------------ */
+/* --------- Main --------- */
 int main(void) {
     int choice;
-
     do {
         printf("Process creation and destruction\n");
         printf("--------------------------------\n");
@@ -209,96 +130,23 @@ int main(void) {
         printf("Enter selection: ");
 
         if (scanf("%d", &choice) != 1) {
-            /* If bad input, consume and continue */
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF) { }
+            /* flush bad input */
+            int ch; while ((ch = getchar()) != '\n' && ch != EOF) {}
             continue;
         }
 
         switch (choice) {
-            case 1:
-                initialize_process_hierarchy();
-                break;
-            case 2:
-                create_child();
-                break;
-            case 3:
-                destroy_descendants_prompt();
-                break;
+            case 1: initialize_process_hierarchy(); break;
+            case 2: create_child();                 break;
+            case 3: destroy_descendants_prompt();   break;
             case 4:
                 printf("Quitting program... ");
                 quit_program();
                 printf("here is the rules\n");
                 break;
-            default:
-                /* Keep menu numbers untouched; ignore invalids */
-                break;
+            default: /* ignore invalid per rubric */ break;
         }
     } while (choice != 4);
 
     return 0;
 }
-//void intitalization(){
-
-
-//printf("\nProcess List: \n");
-//printf("Process id: ");
-
-//}
-
-//void create_child(){
-
-
-//}
-
-//void destroy_descendants(){
-
-
-//}
-
-//void Exit(){
-
-
-//}
-
-
-// code the main table with 4 options
-// Initailize
-// Creation
-// Destroy
-// Quit
-// I also need a selector for each category
-//int main(){
-	//int choice;
-//
-	//do{
-	//printf("\nProcess creation and destruction\n");
-	//printf("--------------------------------\n");
-	//printf(" 1) Initilize process hierarchy\n");
-	//printf(" 2) Create a new child process\n");
-	//printf(" 3) Destroy all descendants of a parent process\n");
-	//printf(" 4) Quit program and free memory\n");
-	//printf("Enter selection: ");
-     //   scanf("%d", &choice);
-
-	// having cases would be best bet
-	//switch (choice) {  
-	
-		//case 1:
-			//intitalization();
-			//break;
-		//case 2:
-		//	create_child();
-		//	break;
-		//case 3:
-		//	destroy_descendants();
-		//	break;
-		//case 4:
-		//	printf("\nQuitting program ...");
-		//	break;
-		//}
-	
-	//}while (choice != 4);
-
-	//return 0;
-//}
