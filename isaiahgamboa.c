@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_PROCESSES 64
+#define MAX_PROCESSES 256 //wanted to use 256
 
 typedef struct ChildNode {
     int child;
