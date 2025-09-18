@@ -1,3 +1,20 @@
+//Create a process creation hierarchy as an array of length MAX_PROCESSES which references process control blocks (PCBs), indexed 0 to MAX_PROCESSES-1.
+//Each PCB is a structure consisting of two fields:
+//parent: a PCB index corresponding to the process’ creator
+//children: a pointer to a linked list, where each node contains the PCB index of one child process and a link to the next child in the linked list
+
+//The necessary functions are simplified as follows:
+//create_child() represents the create function, which prompts for the parent process p. The function creates a new child process q of process p by performing the following tasks:
+//allocate memory for an unused PCB[q]
+//record the parent's index, p, in PCB[q]
+//initialize the list of children of PCB[q] as empty (NULL)
+//create a new link containing the child's index q and append the link to the children field of PCB[p]
+//destroy_descendants() represents the destroy function, which prompts for the parent process p. The function recursively destroys all descendent processes (child, grandchild, etc.) of process p by performing the following tasks: for each element q on the linked list of children of p:
+//destroy_desecndants(q)	(recursively destroy all descendants of q)
+//free memory utilized by PCB[q] and set it to NULL
+//Free memory utilized by the node with id q and set it to NULL
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -140,6 +157,11 @@ static void quit_program(void) {
     free_all();
 }
 
+//1) Initialize process hierarchy
+//2) Create a new child process 
+//3) Destroy all descendants of a parent process 
+//4) Quit program and free memory
+
 int main(void) {
     int choice;
     do {
@@ -149,7 +171,7 @@ int main(void) {
         printf("2) Create a new child process\n");
         printf("3) Destroy all descendants of a process\n");
         printf("4) Quit program and free memory\n");
-        printf("Enter selection: ");
+        printf("\n Enter selection: ");
 
         if (scanf("%d", &choice) != 1) {
             int ch; while ((ch = getchar()) != '\n' && ch != EOF) {}
