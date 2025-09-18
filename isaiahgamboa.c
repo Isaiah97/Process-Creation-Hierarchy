@@ -143,7 +143,7 @@ static void create_child(void) {
     process_list();
 }
 
-static void destroy_descendants(void) {
+static void destroy_descendants_table(void) {
     int p;
     printf("\nEnter the parent process whose descendants are to be destroyed: ");
     if (scanf("%d", &p) != 1) 
@@ -185,7 +185,7 @@ int main(void) {
             	break;
             case 2: create_child();                 
             	break;
-            case 3: destroy_descendants();   
+            case 3: destroy_descendants_table();   
             	break;
             case 4:
                 printf("Quitting program... ");
