@@ -91,7 +91,7 @@ static void initialize_process_hierarchy(void) {
 
 static void create_child(void) {
     int p;
-    printf("Enter the parent process id: ");
+    printf("\nEnter the parent process id: \n");
     if (scanf("%d", &p) != 1) 
     	return;
     if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
