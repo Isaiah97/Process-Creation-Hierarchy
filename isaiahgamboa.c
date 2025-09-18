@@ -77,7 +77,7 @@ static void destroy_descendants(int p) {
         int q = c->child;
         if (q >= 0 && q < MAX_PROCESSES && pcbtable[q]) {
             destroy_descendants(q);
-            free_child_list(pcbtable[q]->children);
+            free_child(pcbtable[q]->children);
             free(pcbtable[q]);
             pcbtable[q] = NULL;
         }
@@ -116,7 +116,7 @@ static void create_child(void) {
     if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
     	return;
 
-    int q = find_free_index();
+    int q = free_index();
     if (q == -1) 
     	return;
 
