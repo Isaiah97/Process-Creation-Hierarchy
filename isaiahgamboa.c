@@ -57,7 +57,7 @@ static void print_process_list(void) {
         if (ptable[i]->parent == -1) 
         	printf("No parent process\n");
         else                          
-       		printf("%*s", indent, "Parent process: %d\n", ptable[i]->parent);
+       		printf("%10s", "Parent process: %d\n", ptable[i]->parent);
         if (!ptable[i]->children)     
         	printf("	No child processes\n");
         else {
