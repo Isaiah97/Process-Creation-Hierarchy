@@ -52,14 +52,14 @@ static void free_child(ChildNode *h) { //need to have a linked list for child
 //reminder to self: make a prompt for outputs that is not a part of the selector prompt
 // need a process list prompt
 static void process_list(void) {
-    printf("\nProcess list:\n");
+    printf("Process list:\n");
     for (int i = 0; i < MAX_PROCESSES; ++i) 
     	if (pcbtable[i]) {
         	printf("Process id: %d\n", i);
         if (pcbtable[i]->parent == -1) 
         	printf("\tNo parent process\n");
         else                          
-       		printf("Parent process: %d\n", pcbtable[i]->parent);
+       		printf("\tParent process: %d\n", pcbtable[i]->parent);
         if (!pcbtable[i]->children)     
         	printf("\tNo child processes\n");
         else {
@@ -112,7 +112,7 @@ static void initialize(void) {
 //need create child class
 static void create_child(void) {
     int p;
-    printf("Enter the parent process id: \n");
+    printf("Enter the parent process id: ");
     if (scanf("%d", &p) != 1) //little bit of error handling example bad input or invalid parent
     	return;
     if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
