@@ -27,41 +27,43 @@ typedef struct ChildNode {
 ChildNode;
 
 typedef struct PCB {
-    int parent;          /* -1 if no parent */
-    ChildNode *children; /* linked list of child indices */
+    int parent;          // -1 if no parent 
+    ChildNode *children; // linked list of child indices 
 } 
-PCB;
+PCB; //call PCB
 
-/* Global: array of PCB pointers (NULL = free slot) */
-static PCB *ptable[MAX_PROCESSES] = {0};
+// need an array of PCB pointers
+static PCB *pcbtable[MAX_PROCESSES] = {0};
 
-/* -------- utilities kept minimal -------- */
+
 static int find_free_index(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) 
-    	if (!ptable[i]) 
+    	if (!pcbtable[i]) 
     		return i;
     return -1;
 }
 
 static void free_child_list(ChildNode *h) {
     while (h) { 
-    	ChildNode *t = h->next; free(h); h = t; 
+    	ChildNode *t = h->next; 
+    	free(h); h = t; 
     }
 }
 
-static void print_process_list(void) {
+
+static void process_list(void) {
     printf("\nProcess list:\n");
     for (int i = 0; i < MAX_PROCESSES; ++i) 
-    	if (ptable[i]) {
+    	if (pcbtable[i]) {
         	printf("Process id: %d\n", i);
-        if (ptable[i]->parent == -1) 
+        if (pcbtable[i]->parent == -1) 
         	printf("\tNo parent process\n");
         else                          
-       		printf("Parent process: %d\n", ptable[i]->parent);
-        if (!ptable[i]->children)     
+       		printf("Parent process: %d\n", pcbtable[i]->parent);
+        if (!pcbtable[i]->children)     
         	printf("\tNo child processes\n");
         else {
-            for (ChildNode *c = ptable[i]->children; c; c = c->next)
+            for (ChildNode *c = pcbtable[i]->children; c; c = c->next)
                 printf("\tChild process: %d\n", c->child);
         }
     }
@@ -69,40 +71,40 @@ static void print_process_list(void) {
 
 /* destroy all descendants of p (NOT p). Also removes links from p */
 static void destroy_descendants(int p) {
-    if (!ptable[p]) return;
-    ChildNode *c = ptable[p]->children;
+    if (!pcbtable[p]) return;
+    ChildNode *c = pcbtable[p]->children;
     while (c) {
         int q = c->child;
-        if (q >= 0 && q < MAX_PROCESSES && ptable[q]) {
+        if (q >= 0 && q < MAX_PROCESSES && pcbtable[q]) {
             destroy_descendants(q);
-            free_child_list(ptable[q]->children);
-            free(ptable[q]);
-            ptable[q] = NULL;
+            free_child_list(pcbtable[q]->children);
+            free(pcbtable[q]);
+            pcbtable[q] = NULL;
         }
         ChildNode *tmp = c;
         c = c->next;
         free(tmp);
     }
-    ptable[p]->children = NULL;
+    pcbtable[p]->children = NULL;
 }
 
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) 
-    	if (ptable[i]) {
-        free_child_list(ptable[i]->children);
-        free(ptable[i]);
-        ptable[i] = NULL;
+    	if (pcbtable[i]) {
+        free_child_list(pcbtable[i]->children);
+        free(pcbtable[i]);
+        pcbtable[i] = NULL;
     }
 }
 
 /* -------- menu actions with EXACT rubric text -------- */
-static void initialize_process_hierarchy(void) {
+static void initialize(void) {
     free_all();
-    ptable[0] = (PCB *)malloc(sizeof(PCB));
-    if (!ptable[0]) 
+    pcbtable[0] = (PCB *)malloc(sizeof(PCB));
+    if (!pcbtable[0]) 
     	exit(1);
-    ptable[0]->parent = -1;
-    ptable[0]->children = NULL;
+    pcbtable[0]->parent = -1;
+    pcbtable[0]->children = NULL;
     print_process_list();
 }
 
@@ -111,18 +113,18 @@ static void create_child(void) {
     printf("\n\nEnter the parent process id: \n");
     if (scanf("%d", &p) != 1) 
     	return;
-    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
+    if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
     	return;
 
     int q = find_free_index();
     if (q == -1) 
     	return;
 
-    ptable[q] = (PCB *)malloc(sizeof(PCB));
-    if (!ptable[q]) 
+    pcbtable[q] = (PCB *)malloc(sizeof(PCB));
+    if (!pcbtable[q]) 
     	exit(1);
-    ptable[q]->parent = p;
-    ptable[q]->children = NULL;
+    pcbtable[q]->parent = p;
+    pcbtable[q]->children = NULL;
 
     ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
     if (!node) 
@@ -130,10 +132,10 @@ static void create_child(void) {
     node->child = q; 
     node->next = NULL;
 
-    if (!ptable[p]->children) 
-    	ptable[p]->children = node;
+    if (!pcbtable[p]->children) 
+    	pcbtable[p]->children = node;
     else {
-        ChildNode *t = ptable[p]->children;
+        ChildNode *t = pcbtable[p]->children;
         while (t->next) t = t->next;
         t->next = node;
     }
@@ -141,12 +143,12 @@ static void create_child(void) {
     print_process_list();
 }
 
-static void destroy_descendants_prompt(void) {
+static void destroy_descendants(void) {
     int p;
     printf("\nEnter the parent process whose descendants are to be destroyed: ");
     if (scanf("%d", &p) != 1) 
     	return;
-    if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
+    if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
     	return;
 
     destroy_descendants(p);
@@ -179,11 +181,11 @@ int main(void) {
         }
 
         switch (choice) {
-            case 1: initialize_process_hierarchy(); 
+            case 1: initialize(); 
             	break;
             case 2: create_child();                 
             	break;
-            case 3: destroy_descendants_prompt();   
+            case 3: destroy_descendants();   
             	break;
             case 4:
                 printf("Quitting program... ");
