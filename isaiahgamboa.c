@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_PROCESSES 256 //wanted to use 256
+#define MAX_PROCESSES 256 //wanted to use 256 for bigger cases
 
 typedef struct ChildNode {
     int child;
@@ -36,14 +36,14 @@ PCB; //call PCB
 static PCB *pcbtable[MAX_PROCESSES] = {0};
 
 
-static int find_free_index(void) {
+static int free_index(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) 
     	if (!pcbtable[i]) 
     		return i;
     return -1;
 }
 
-static void free_child_list(ChildNode *h) {
+static void free_child(ChildNode *h) {
     while (h) { 
     	ChildNode *t = h->next; 
     	free(h); h = t; 
@@ -110,7 +110,7 @@ static void initialize(void) {
 
 static void create_child(void) {
     int p;
-    printf("\n\nEnter the parent process id: \n");
+    printf("Enter the parent process id: \n");
     if (scanf("%d", &p) != 1) 
     	return;
     if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
