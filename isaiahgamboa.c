@@ -165,7 +165,7 @@ static void quit_program(void) {
 int main(void) {
     int choice;
     do {
-        printf("Process creation and destruction\n");
+        printf("\nProcess creation and destruction\n");
         printf("--------------------------------\n");
         printf("1) Initialize process hierarchy\n");
         printf("2) Create a new child process\n");
