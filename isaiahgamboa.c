@@ -105,7 +105,7 @@ static void initialize(void) {
     	exit(1);
     pcbtable[0]->parent = -1;
     pcbtable[0]->children = NULL;
-    print_process_list();
+    process_list();
 }
 
 static void create_child(void) {
@@ -140,7 +140,7 @@ static void create_child(void) {
         t->next = node;
     }
 
-    print_process_list();
+    process_list();
 }
 
 static void destroy_descendants(void) {
@@ -152,7 +152,7 @@ static void destroy_descendants(void) {
     	return;
 
     destroy_descendants(p);
-    print_process_list();
+    process_list();
 }
 
 static void quit_program(void) {
