@@ -55,14 +55,14 @@ static void print_process_list(void) {
     	if (ptable[i]) {
         	printf("Process id: %d\n", i);
         if (ptable[i]->parent == -1) 
-        	printf("No parent process\n");
+        	printf("\tNo parent process\n");
         else                          
        		printf("Parent process: %d\n", ptable[i]->parent);
         if (!ptable[i]->children)     
-        	printf("	No child processes\n");
+        	printf("\tNo child processes\n");
         else {
             for (ChildNode *c = ptable[i]->children; c; c = c->next)
-                printf("	Child process: %d\n", c->child);
+                printf("\tChild process: %d\n", c->child);
         }
     }
 }
@@ -108,7 +108,7 @@ static void initialize_process_hierarchy(void) {
 
 static void create_child(void) {
     int p;
-    printf("\nEnter the parent process id: \n");
+    printf("\n\nEnter the parent process id: \n");
     if (scanf("%d", &p) != 1) 
     	return;
     if (p < 0 || p >= MAX_PROCESSES || !ptable[p]) 
@@ -165,7 +165,7 @@ static void quit_program(void) {
 int main(void) {
     int choice;
     do {
-        printf("\nProcess creation and destruction\n");
+        printf("\n\nProcess creation and destruction\n");
         printf("--------------------------------\n");
         printf("1) Initialize process hierarchy\n");
         printf("2) Create a new child process\n");
