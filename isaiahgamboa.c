@@ -91,7 +91,7 @@ static void destroy_descendants(int p) {
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) 
     	if (pcbtable[i]) {
-        free_child_list(pcbtable[i]->children);
+        free_child(pcbtable[i]->children);
         free(pcbtable[i]);
         pcbtable[i] = NULL;
     }
