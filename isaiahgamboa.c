@@ -28,7 +28,7 @@ ChildNode;
 
 typedef struct PCB {
     int parent;          // -1 if no parent 
-    ChildNode *children; // linked list of child indices 
+    ChildNode *children; // linked list of child
 } 
 PCB; //call PCB
 
@@ -36,21 +36,21 @@ PCB; //call PCB
 static PCB *pcbtable[MAX_PROCESSES] = {0};
 
 
-static int free_index(void) {
+static int free_index(void) { //need to find a free index in the pcbtable
     for (int i = 0; i < MAX_PROCESSES; ++i) 
     	if (!pcbtable[i]) 
     		return i;
     return -1;
 }
 
-static void free_child(ChildNode *h) {
+static void free_child(ChildNode *h) { //need to have a linked list for child
     while (h) { 
     	ChildNode *t = h->next; 
     	free(h); h = t; 
     }
 }
-
-
+//reminder to self: make a prompt for outputs that is not a part of the selector prompt
+// need a process list prompt
 static void process_list(void) {
     printf("\nProcess list:\n");
     for (int i = 0; i < MAX_PROCESSES; ++i) 
@@ -68,17 +68,18 @@ static void process_list(void) {
         }
     }
 }
-
-/* destroy all descendants of p (NOT p). Also removes links from p */
-static void destroy_descendants(int p) {
-    if (!pcbtable[p]) return;
-    ChildNode *c = pcbtable[p]->children;
+// want to knock out destroy descendants first
+static void destroy_descendants(int p) { 
+    if (!pcbtable[p]) //case handling
+    	return;
+    ChildNode *c = pcbtable[p]->children; //allows p to continue 
     while (c) {
-        int q = c->child;
+        int q = c->child; //destroys and rsets q free
+        //finally got to set q free
         if (q >= 0 && q < MAX_PROCESSES && pcbtable[q]) {
             destroy_descendants(q);
             free_child(pcbtable[q]->children);
-            free(pcbtable[q]);
+            free(pcbtable[q]); //free can eliminate q
             pcbtable[q] = NULL;
         }
         ChildNode *tmp = c;
@@ -87,7 +88,7 @@ static void destroy_descendants(int p) {
     }
     pcbtable[p]->children = NULL;
 }
-
+//had free time so i can just terminate the pcbtable
 static void free_all(void) {
     for (int i = 0; i < MAX_PROCESSES; ++i) 
     	if (pcbtable[i]) {
@@ -97,41 +98,43 @@ static void free_all(void) {
     }
 }
 
-/* -------- menu actions with EXACT rubric text -------- */
 static void initialize(void) {
-    free_all();
-    pcbtable[0] = (PCB *)malloc(sizeof(PCB));
+    free_all();  //empty table
+    pcbtable[0] = (PCB *)malloc(sizeof(PCB)); //found 
     if (!pcbtable[0]) 
     	exit(1);
+    //need to have id parent = 0, no child would exist
     pcbtable[0]->parent = -1;
     pcbtable[0]->children = NULL;
     process_list();
 }
 
+//need create child class
 static void create_child(void) {
     int p;
     printf("Enter the parent process id: \n");
-    if (scanf("%d", &p) != 1) 
+    if (scanf("%d", &p) != 1) //little bit of error handling example bad input or invalid parent
     	return;
     if (p < 0 || p >= MAX_PROCESSES || !pcbtable[p]) 
     	return;
-
+//in case if the table is full
     int q = free_index();
     if (q == -1) 
     	return;
-
+//make sure to use q as child pcb index
     pcbtable[q] = (PCB *)malloc(sizeof(PCB));
     if (!pcbtable[q]) 
     	exit(1);
     pcbtable[q]->parent = p;
     pcbtable[q]->children = NULL;
-
+//q and append the link to the children field of PCB[p]
     ChildNode *node = (ChildNode *)malloc(sizeof(ChildNode));
     if (!node) 
     	exit(1);
     node->child = q; 
     node->next = NULL;
-
+//need to have the first child
+    // make sure the child follows thru at the end
     if (!pcbtable[p]->children) 
     	pcbtable[p]->children = node;
     else {
@@ -142,7 +145,7 @@ static void create_child(void) {
 
     process_list();
 }
-
+//need to have selection 3 have an operational prompt
 static void destroy_descendants_table(void) {
     int p;
     printf("\nEnter the parent process whose descendants are to be destroyed: ");
@@ -155,8 +158,9 @@ static void destroy_descendants_table(void) {
     process_list();
 }
 
+//option 4 to just free everything
 static void quit_program(void) {
-    free_all();
+    free_all(); //had all the work done before hand
 }
 
 //1) Initialize process hierarchy
